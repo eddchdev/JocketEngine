@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="54e1c133-bad8-4f36-9b5d-bccc553d77a0" name="Alterações" comment="" />
+    <list default="true" id="54e1c133-bad8-4f36-9b5d-bccc553d77a0" name="Alterações" comment="">
+      <change afterPath="$PROJECT_DIR$/resources/skull.gif" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.me" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -53,10 +58,23 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/Eddch/Downloads/JocketEngine-Full",
+    "last_opened_file_path": "C:/Users/Eddch/Downloads/JocketEngine-Full/src/main/java/jocketengine/assets",
+    "onboarding.tips.debug.path": "C:/Users/Eddch/Downloads/JocketEngine-Full/resources/src/main/java/Unknown/Main.java",
     "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Eddch\Downloads\JocketEngine-Full\src\main\java\jocketengine\assets" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Eddch\Downloads\JocketEngine-Full\resources" />
+      <recent name="C:\Users\Eddch\Downloads\JocketEngine-Full\assets" />
+      <recent name="C:\Users\Eddch\Downloads\JocketEngine-Full" />
+      <recent name="C:\Users\Eddch\Downloads\JocketEngine-Full\src" />
+      <recent name="C:\Users\Eddch\Downloads\JocketEngine-Full\src\main" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="Game" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="jocketengine.Game" />
@@ -86,5 +104,21 @@
       <updated>1752494956377</updated>
     </task>
     <servers />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/assets/src/main/java/com/jocket/Main.java</url>
+          <line>13</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/resources/src/main/java/Unknown/Main.java</url>
+          <line>13</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
