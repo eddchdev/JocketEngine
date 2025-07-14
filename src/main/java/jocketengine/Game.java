@@ -1,6 +1,7 @@
 package jocketengine;
 
 import jocketengine.input.Input;
+import jocketengine.graphics.OpenGLWindow;
 import jocketengine.scene.SceneManager;
 import jocketengine.scene.scenes.MainMenuScene;
 import jocketengine.ui.UIManager;
@@ -10,86 +11,50 @@ import java.awt.*;
 import java.awt.image.BufferStrategy;
 
 /**
- * Classe principal da JocketEngine, responsável por criar a janela,
- * iniciar o loop principal do jogo (update e render) e gerenciar sistemas básicos.
- * <p>
- * Extende {@link Canvas} para renderização acelerada, e implementa {@link Runnable} para executar em thread própria.
- * </p>
- * <p>
- * A janela é criada com {@link JFrame} com tamanho fixo e escala configurável,
- * e utiliza buffer strategy para melhor performance gráfica.
- * </p>
+ * Classe principal da JocketEngine.
+ * Responsável por iniciar o loop principal do jogo (update e render),
+ * criar a janela Java2D ou OpenGL e inicializar sistemas.
  *
- * <p>Exemplo de execução:</p>
- * <pre>{@code
- * public static void main(String[] args) {
- *     Game game = new Game();
- *     game.start();
- * }
- * }</pre>
+ * <p>
+ * Usa Java2D com {@link Canvas} para renderização tradicional,
+ * e possui suporte alternativo a OpenGL via LWJGL.
+ * </p>
  *
  * @author Eddch
  */
 public class Game extends Canvas implements Runnable {
 
-    /**
-     * Largura base da tela em pixels.
-     */
     private static final int WIDTH = 480;
-
-    /**
-     * Altura base da tela em pixels.
-     */
     private static final int HEIGHT = 270;
-
-    /**
-     * Fator de escala aplicado à tela para ampliar a imagem.
-     */
     private static final int SCALE = 3;
-
-    /**
-     * Título da janela do jogo.
-     */
     private static final String TITLE = "JocketEngine Demo";
 
-    /**
-     * Janela principal do jogo.
-     */
     private static JFrame frame;
-
-    /**
-     * Instância estática única do jogo.
-     */
     private static Game instance;
 
-    /**
-     * Controla o estado do loop do jogo (rodando ou não).
-     */
     private boolean running = false;
-
-    /**
-     * Thread principal que executa o loop do jogo.
-     */
     private Thread gameThread;
-
-    /**
-     * Último instante de tempo registrado para cálculo do delta time.
-     */
     private long lastTime;
 
     /**
-     * Método principal para iniciar a aplicação.
-     * Cria uma instância de {@code Game} e inicia o loop.
+     * Ponto de entrada da aplicação.
+     * Inicia o jogo em modo Java2D ou OpenGL.
      *
-     * @param args argumentos de linha de comando (não usados)
+     * @param args argumentos de linha de comando
      */
     public static void main(String[] args) {
-        instance = new Game();
-        instance.start();
+        boolean enableOpenGL = true; // Troque para true para iniciar com OpenGL
+
+        if (enableOpenGL) {
+            new OpenGLWindow().run();
+        } else {
+            instance = new Game();
+            instance.start();
+        }
     }
 
     /**
-     * Construtor que inicializa a janela, configura a entrada de dados e prepara o canvas.
+     * Construtor que cria a janela Java2D e configura input.
      */
     public Game() {
         setPreferredSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE));
@@ -101,7 +66,6 @@ public class Game extends Canvas implements Runnable {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
-        // Configura os listeners de input para teclado e mouse
         Input.setup(this);
         this.addKeyListener(Input.getKeyListener());
         this.addMouseListener(Input.getMouseListener());
@@ -110,7 +74,7 @@ public class Game extends Canvas implements Runnable {
     }
 
     /**
-     * Inicia o loop principal do jogo em uma thread separada.
+     * Inicia o loop do jogo em uma thread separada.
      */
     public synchronized void start() {
         if (running) return;
@@ -120,7 +84,7 @@ public class Game extends Canvas implements Runnable {
     }
 
     /**
-     * Para o loop do jogo e aguarda término da thread.
+     * Para o jogo com segurança.
      */
     public synchronized void stop() {
         if (!running) return;
@@ -133,9 +97,8 @@ public class Game extends Canvas implements Runnable {
     }
 
     /**
-     * Método principal executado na thread do jogo.
-     * Responsável por atualizar e renderizar o jogo em loop constante,
-     * mantendo taxa aproximada de 60 frames por segundo.
+     * Loop principal do jogo.
+     * Atualiza e renderiza a cada ciclo.
      */
     @Override
     public void run() {
@@ -143,9 +106,7 @@ public class Game extends Canvas implements Runnable {
         BufferStrategy bs = this.getBufferStrategy();
         Graphics g;
 
-        // Carrega a primeira cena do jogo
         SceneManager.changeScene(new MainMenuScene());
-
         lastTime = System.nanoTime();
 
         while (running) {
@@ -161,7 +122,7 @@ public class Game extends Canvas implements Runnable {
             bs.show();
 
             try {
-                Thread.sleep(16); // Aproximadamente 60 FPS
+                Thread.sleep(16); // ~60 FPS
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -169,9 +130,9 @@ public class Game extends Canvas implements Runnable {
     }
 
     /**
-     * Atualiza os sistemas do jogo, como entrada, cena e interface.
+     * Atualiza entrada, cena e interface.
      *
-     * @param dt delta time (tempo em segundos desde o último frame)
+     * @param dt delta time (em segundos)
      */
     private void update(float dt) {
         Input.update();
@@ -180,9 +141,9 @@ public class Game extends Canvas implements Runnable {
     }
 
     /**
-     * Renderiza a cena atual e os elementos da interface gráfica.
+     * Renderiza cena e interface gráfica.
      *
-     * @param g objeto {@link Graphics} utilizado para desenho na tela
+     * @param g contexto gráfico
      */
     private void render(Graphics g) {
         g.setColor(Color.BLACK);
@@ -193,34 +154,28 @@ public class Game extends Canvas implements Runnable {
     }
 
     /**
-     * Retorna a instância única do jogo.
-     *
-     * @return instância de {@code Game}
+     * Retorna instância do jogo.
      */
     public static Game getInstance() {
         return instance;
     }
 
     /**
-     * Retorna a largura base do jogo (sem escala).
-     *
-     * @return largura em pixels
+     * Largura lógica do jogo (sem escala).
      */
     public static int getGameWidth() {
         return WIDTH;
     }
 
     /**
-     * Retorna a altura base do jogo (sem escala).
-     *
-     * @return altura em pixels
+     * Altura lógica do jogo (sem escala).
      */
     public static int getGameHeight() {
         return HEIGHT;
     }
 
     /**
-     * Encerra a aplicação de forma segura.
+     * Encerra o jogo com segurança.
      */
     public static void exit() {
         instance.stop();
