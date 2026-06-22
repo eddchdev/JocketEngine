@@ -6,42 +6,43 @@ import jocketengine.events.EventManager;
 import java.util.List;
 
 /**
- * Sistema responsável por verificar colisões entre entidades com Collider.
+ * Detecção de colisões AABB entre entidades.
  * <p>
- * Dispara eventos de colisão quando necessário.
+ * Compara as caixas delimitadoras ({@link Entity#getBounds()}) e dispara um
+ * {@link CollisionEvent} para cada par sobreposto.
  * </p>
- * 
+ *
  * @author Eddch
  */
-public class CollisionSystem {
+public final class CollisionSystem {
+
+    private CollisionSystem() {
+    }
 
     /**
-     * Verifica colisões entre todas as entidades com collider.
-     * 
-     * @param entities lista de entidades do jogo
+     * Verifica todos os pares de entidades e dispara {@link CollisionEvent}
+     * para os que estiverem colidindo.
+     *
+     * @param entities entidades a testar
      */
     public static void checkCollisions(List<Entity> entities) {
         for (int i = 0; i < entities.size(); i++) {
+            Entity a = entities.get(i);
             for (int j = i + 1; j < entities.size(); j++) {
-                Entity a = entities.get(i);
                 Entity b = entities.get(j);
-
-                if (a instanceof Collidable && b instanceof Collidable) {
-                    Collider colliderA = ((Collidable) a).getCollider();
-                    Collider colliderB = ((Collidable) b).getCollider();
-
-                    if (colliderA.isColliding(colliderB)) {
-                        EventManager.fireEvent(new CollisionEvent(a, b));
-                    }
+                if (a.getBounds().intersects(b.getBounds())) {
+                    EventManager.fireEvent(new CollisionEvent(a, b));
                 }
             }
         }
     }
 
     /**
-     * Interface que define uma entidade que possui collider.
+     * @param a primeira entidade
+     * @param b segunda entidade
+     * @return true se as caixas delimitadoras das duas entidades se sobrepõem
      */
-    public interface Collidable {
-        Collider getCollider();
+    public static boolean collides(Entity a, Entity b) {
+        return a.getBounds().intersects(b.getBounds());
     }
 }
