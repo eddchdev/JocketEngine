@@ -11,11 +11,12 @@ import jocketengine.input.Input;
 import jocketengine.scene.Scene;
 import jocketengine.scene.SceneManager;
 import jocketengine.ui.UIManager;
+import jocketengine.ui.style.UIFonts;
 import jocketengine.utils.Rectangle;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,7 @@ public class GameScene extends Scene {
 
     @Override
     public void onLoad() {
-        UIManager.clear(); // O HUD desta cena é desenhado manualmente.
+        UIManager.clear(); // O HUD desta cena é desenhado em renderUI.
 
         buildPlatforms();
 
@@ -48,7 +49,6 @@ public class GameScene extends Scene {
 
         spawnCoins();
 
-        // Coletar moeda é tratado via evento: a colisão dispara, o listener pontua.
         EventManager.clearListeners(CoinCollectedEvent.class);
         EventManager.registerListener(CoinCollectedEvent.class, EventPriority.NORMAL, event -> {
             event.getCoin().destroy();
@@ -84,7 +84,6 @@ public class GameScene extends Scene {
 
         entityManager.update(dt);
 
-        // Colisão jogador x moedas → dispara CoinCollectedEvent.
         for (Entity entity : entityManager.getEntities()) {
             if (entity instanceof CoinEntity coin && CollisionSystem.collides(player, coin)) {
                 EventManager.fireEvent(new CoinCollectedEvent(coin));
@@ -110,25 +109,26 @@ public class GameScene extends Scene {
         }
 
         entityManager.render(g);
-
-        renderHud(g, w);
     }
 
-    private void renderHud(Graphics g, int w) {
-        g.setFont(new Font("Monospaced", Font.BOLD, 12));
-        g.setColor(Color.WHITE);
-        g.drawString("Moedas: " + score + "/" + totalCoins, 8, 16);
+    @Override
+    public void renderUI(Graphics2D g) {
+        int w = Engine.getWidth();
 
-        g.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        g.setColor(new Color(160, 160, 180));
-        g.drawString("ESC: pausar", w - 70, 16);
+        g.setFont(UIFonts.HUD);
+        g.setColor(Color.WHITE);
+        g.drawString("Moedas: " + score + "/" + totalCoins, 8, 15);
+
+        g.setFont(UIFonts.SMALL);
+        g.setColor(new Color(150, 150, 175));
+        String hint = "ESC: pausar";
+        g.drawString(hint, w - g.getFontMetrics().stringWidth(hint) - 8, 14);
 
         if (score >= totalCoins) {
-            g.setFont(new Font("Monospaced", Font.BOLD, 16));
+            g.setFont(UIFonts.TITLE);
             g.setColor(new Color(255, 220, 90));
-            String msg = "Voce venceu!";
-            int textWidth = g.getFontMetrics().stringWidth(msg);
-            g.drawString(msg, (w - textWidth) / 2, 60);
+            String msg = "Você venceu!";
+            g.drawString(msg, (w - g.getFontMetrics().stringWidth(msg)) / 2, 62);
         }
     }
 

@@ -3,6 +3,7 @@ package jocketengine.entities;
 import jocketengine.core.Engine;
 import jocketengine.events.EventManager;
 import jocketengine.events.PlayerMoveEvent;
+import jocketengine.graphics.Sprite;
 import jocketengine.input.Input;
 import jocketengine.utils.Rectangle;
 
@@ -10,14 +11,16 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Jogador controlável: anda na horizontal, pula e sofre gravidade, colidindo
- * com uma lista de plataformas via AABB e resolução de colisão por eixo.
+ * Jogador controlável, desenhado como um pequeno cavaleiro de máscara branca e
+ * chifres (inspirado em Hollow Knight), em pixel art. Anda na horizontal, pula e
+ * sofre gravidade, colidindo com plataformas via AABB e resolução por eixo.
  * <p>
- * Dispara um {@link PlayerMoveEvent} cancelável sempre que se move, permitindo
- * que outros sistemas (scripts, gatilhos, anti-cheat) reajam ou bloqueiem.
+ * Dispara um {@link PlayerMoveEvent} cancelável sempre que se move.
  * </p>
  *
  * @author Eddch
@@ -29,12 +32,50 @@ public class PlayerEntity extends Entity {
     private static final float GRAVITY = 900f;
     private static final float MAX_FALL_SPEED = 600f;
 
+    // Mapa de pixels do cavaleiro (14 x 22). '.' = transparente.
+    private static final String[] KNIGHT = {
+            "..o........o..",
+            "..ow......wo..",
+            ".oww......wwo.",
+            ".owwo....owwo.",
+            ".owwwo..owwwo.",
+            ".oowwwwwwwwoo.",
+            ".owwwwwwwwwwo.",
+            ".owweewweewwo.",
+            ".owweewweewwo.",
+            ".owwwwwwwwwwo.",
+            "..owwwwwwwwo..",
+            "..obbbbbbbbo..",
+            ".obbbbbbbbbbo.",
+            ".obbbbbbbbbbo.",
+            ".obbbbbbbbbbo.",
+            ".obbbbbbbbbbo.",
+            "..obbbbbbbbo..",
+            "..obbbbbbbbo..",
+            "...obo..obo...",
+            "...obo..obo...",
+            "...obo..obo...",
+            "...ooo..ooo..."
+    };
+
+    private static final Sprite SPRITE = buildSprite();
+
+    private static Sprite buildSprite() {
+        Map<Character, Color> palette = new HashMap<>();
+        palette.put('o', new Color(20, 22, 30));    // contorno
+        palette.put('w', new Color(238, 240, 232)); // máscara clara
+        palette.put('e', new Color(12, 12, 16));    // olhos vazios
+        palette.put('b', new Color(40, 44, 62));    // corpo/manto
+        return Sprite.fromRows(KNIGHT, palette);
+    }
+
     private final float spawnX;
     private final float spawnY;
 
     private float velocityX;
     private float velocityY;
     private boolean onGround;
+    private boolean facingLeft;
 
     private List<Rectangle> platforms = new ArrayList<>();
 
@@ -59,7 +100,6 @@ public class PlayerEntity extends Entity {
         float oldX = x;
         float oldY = y;
 
-        // Entrada horizontal
         velocityX = 0;
         if (Input.isKeyDown(KeyEvent.VK_LEFT) || Input.isKeyDown(KeyEvent.VK_A)) {
             velocityX -= MOVE_SPEED;
@@ -68,7 +108,12 @@ public class PlayerEntity extends Entity {
             velocityX += MOVE_SPEED;
         }
 
-        // Pulo
+        if (velocityX < 0) {
+            facingLeft = true;
+        } else if (velocityX > 0) {
+            facingLeft = false;
+        }
+
         boolean jump = Input.isKeyPressed(KeyEvent.VK_SPACE)
                 || Input.isKeyPressed(KeyEvent.VK_UP)
                 || Input.isKeyPressed(KeyEvent.VK_W);
@@ -77,15 +122,12 @@ public class PlayerEntity extends Entity {
             onGround = false;
         }
 
-        // Gravidade
         velocityY = Math.min(velocityY + GRAVITY * dt, MAX_FALL_SPEED);
 
-        // Movimento + colisão resolvidos por eixo
         moveHorizontally(velocityX * dt);
         moveVertically(velocityY * dt);
         clampToWorld();
 
-        // Notifica (cancelável) que o jogador se moveu
         if (x != oldX || y != oldY) {
             PlayerMoveEvent event = new PlayerMoveEvent(oldX, oldY, x, y);
             EventManager.fireEvent(event);
@@ -143,7 +185,6 @@ public class PlayerEntity extends Entity {
         if (worldWidth > 0 && x + width > worldWidth) {
             x = worldWidth - width;
         }
-        // Caiu para fora do mundo: reaparece no ponto inicial.
         if (worldHeight > 0 && y > worldHeight + height) {
             x = spawnX;
             y = spawnY;
@@ -154,12 +195,10 @@ public class PlayerEntity extends Entity {
 
     @Override
     public void render(Graphics g) {
-        int ix = Math.round(x);
-        int iy = Math.round(y);
-
-        g.setColor(new Color(90, 150, 255));
-        g.fillRect(ix, iy, width, height);
-        g.setColor(new Color(200, 220, 255));
-        g.drawRect(ix, iy, width - 1, height - 1);
+        // Centraliza o sprite na horizontal e alinha os pés à base da hitbox,
+        // permitindo que os chifres ultrapassem o topo da caixa de colisão.
+        int drawX = Math.round(x + width / 2f - SPRITE.getWidth() / 2f);
+        int drawY = Math.round(y + height - SPRITE.getHeight());
+        SPRITE.draw(g, drawX, drawY, facingLeft);
     }
 }

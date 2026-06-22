@@ -7,9 +7,9 @@ import jocketengine.scene.SceneManager;
 import jocketengine.ui.UIManager;
 import jocketengine.ui.elements.Button;
 import jocketengine.ui.elements.Label;
+import jocketengine.ui.style.UIFonts;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 
@@ -27,8 +27,7 @@ public class PauseScene extends Scene {
 
         int centerX = Engine.getWidth() / 2;
 
-        UIManager.add(new Label(centerX, 90, "Pausado",
-                new Font("Monospaced", Font.BOLD, 28), Color.WHITE)
+        UIManager.add(new Label(centerX, 92, "Pausado", UIFonts.TITLE, Color.WHITE)
                 .setAlign(Label.Align.CENTER));
 
         int buttonWidth = 170;

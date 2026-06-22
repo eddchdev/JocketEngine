@@ -19,6 +19,12 @@ Primeira versão funcional e jogável da engine.
 - **Integração contínua** via GitHub Actions (`maven.yml`).
 - Geração de **JAR executável** (Maven Shade) e execução via `exec:java`.
 - `CONTRIBUTING.md`, `CHANGELOG.md` e `.gitignore`.
+- **Sprite** em pixel art a partir de mapa de caracteres (`Sprite.fromRows`), com
+  espelhamento horizontal.
+- **Personagem padrão** em pixel art: um pequeno cavaleiro de máscara e chifres
+  (inspirado em Hollow Knight), com direção (flip) conforme o movimento.
+- **Tipografia limpa**: HUD e UI são desenhados em resolução nativa com
+  antialiasing, separados do mundo em pixel art; botões com cantos arredondados.
 
 ### Corrigido
 - Entrada (`Input`): estados de "pressionado neste passo" agora são limpos no

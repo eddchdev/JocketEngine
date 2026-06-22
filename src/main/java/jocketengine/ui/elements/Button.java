@@ -1,39 +1,42 @@
 package jocketengine.ui.elements;
 
 import jocketengine.input.Input;
+import jocketengine.ui.style.UIFonts;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 
 /**
- * Representa um botão clicável na interface gráfica da JocketEngine.
- * <p>
- * Pode exibir texto, detectar interações com o mouse e executar ações
- * definidas pelo usuário ao ser clicado.
- * </p>
+ * Botão clicável da interface: exibe texto, detecta o mouse (em coordenadas
+ * lógicas) e executa uma ação ao ser clicado. Desenhado com cantos arredondados
+ * e realce ao passar o mouse.
  *
  * @author Eddch
  */
 public class Button implements UIElement {
 
-    private int x, y, width, height;
-    private String text;
-    private Runnable onClick;
+    private final int x;
+    private final int y;
+    private final int width;
+    private final int height;
+    private final String text;
 
+    private Runnable onClick;
     private boolean hovered = false;
 
-    private Color backgroundColor = new Color(60, 60, 80);
-    private Color hoverColor = new Color(80, 80, 100);
+    private Color backgroundColor = new Color(44, 48, 66);
+    private Color hoverColor = new Color(64, 72, 100);
     private Color textColor = Color.WHITE;
-    private Font font = new Font("Arial", Font.PLAIN, 16);
+    private Font font = UIFonts.BUTTON;
 
     /**
-     * Cria um novo botão com posição, tamanho e texto.
-     *
-     * @param x     posição X
-     * @param y     posição Y
-     * @param width largura do botão
-     * @param height altura do botão
-     * @param text  texto exibido no botão
+     * @param x      posição X
+     * @param y      posição Y
+     * @param width  largura
+     * @param height altura
+     * @param text   texto exibido
      */
     public Button(int x, int y, int width, int height, String text) {
         this.x = x;
@@ -43,11 +46,7 @@ public class Button implements UIElement {
         this.text = text;
     }
 
-    /**
-     * Define a ação que será executada ao clicar no botão.
-     *
-     * @param onClick ação a ser executada (Runnable)
-     */
+    /** Define a ação executada ao clicar. */
     public void setOnClick(Runnable onClick) {
         this.onClick = onClick;
     }
@@ -59,31 +58,28 @@ public class Button implements UIElement {
 
         hovered = mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
 
-        if (hovered && Input.isMousePressed()) {
-            if (onClick != null) onClick.run();
+        if (hovered && Input.isMousePressed() && onClick != null) {
+            onClick.run();
         }
     }
 
     @Override
     public void render(Graphics g) {
-        g.setColor(hovered ? hoverColor : backgroundColor);
-        g.fillRect(x, y, width, height);
+        int arc = 8;
 
-        g.setColor(Color.BLACK);
-        g.drawRect(x, y, width, height);
+        g.setColor(hovered ? hoverColor : backgroundColor);
+        g.fillRoundRect(x, y, width, height, arc, arc);
+
+        g.setColor(hovered ? new Color(120, 200, 255) : new Color(90, 96, 120));
+        g.drawRoundRect(x, y, width - 1, height - 1, arc, arc);
 
         g.setColor(textColor);
         g.setFont(font);
-
-        // Centraliza o texto no botão
         FontMetrics fm = g.getFontMetrics();
         int textX = x + (width - fm.stringWidth(text)) / 2;
-        int textY = y + (height + fm.getAscent() - fm.getDescent()) / 2;
-
+        int textY = y + (height - fm.getHeight()) / 2 + fm.getAscent();
         g.drawString(text, textX, textY);
     }
-
-    // Getters e setters opcionais (para personalização futura)
 
     public void setFont(Font font) {
         this.font = font;

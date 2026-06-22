@@ -1,6 +1,7 @@
 package jocketengine.scene;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -73,6 +74,18 @@ public final class SceneManager {
         Scene[] scenes = sceneStack.toArray(new Scene[0]);
         for (int i = scenes.length - 1; i >= 0; i--) {
             scenes[i].render(g);
+        }
+    }
+
+    /**
+     * Renderiza o HUD/UI apenas da cena do topo, em resolução nativa.
+     *
+     * @param g contexto já escalado e com antialiasing
+     */
+    public static void renderUI(Graphics2D g) {
+        Scene current = sceneStack.peek();
+        if (current != null) {
+            current.renderUI(g);
         }
     }
 

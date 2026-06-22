@@ -1,56 +1,54 @@
 package jocketengine.scene;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 
 /**
- * Classe abstrata base que representa uma cena dentro do jogo.
+ * Base para uma cena do jogo (menu, gameplay, pausa...).
  * <p>
- * Uma cena pode ser qualquer estado visual ou lógico do jogo:
- * menu principal, gameplay, tela de pausa, etc.
+ * Cada cena tem um ciclo de vida: {@link #onLoad()}, {@link #update(float)},
+ * {@link #render(Graphics)} e {@link #onExit()}. Opcionalmente, pode desenhar
+ * HUD/texto em {@link #renderUI(Graphics2D)}.
  * </p>
  *
  * <p>
- * Cada cena deve implementar os métodos de ciclo de vida:
- * {@link #onLoad()}, {@link #update(float)}, {@link #render(Graphics)}, e {@link #onExit()}.
+ * O {@link #render(Graphics)} desenha o <b>mundo</b> no espaço lógico (pixel art,
+ * ampliado por vizinho-mais-próximo). Já o {@link #renderUI(Graphics2D)} desenha
+ * em <b>resolução nativa com antialiasing</b> — ideal para texto nítido — usando
+ * ainda as mesmas coordenadas lógicas.
  * </p>
- *
- * <p>Exemplo de extensão:</p>
- * <pre>{@code
- * public class GameScene extends Scene {
- *     public void onLoad() { ... }
- *     public void update(float dt) { ... }
- *     public void render(Graphics g) { ... }
- *     public void onExit() { ... }
- * }
- * }</pre>
  *
  * @author Eddch
  */
 public abstract class Scene {
 
-    /**
-     * Método chamado uma única vez quando a cena é carregada pelo {@link SceneManager}.
-     * Ideal para inicializar entidades, carregar recursos e configurar o estado inicial.
-     */
+    /** Chamado uma vez ao carregar a cena. */
     public abstract void onLoad();
 
     /**
-     * Método chamado a cada frame para atualizar a lógica da cena.
+     * Atualiza a lógica da cena.
      *
-     * @param dt delta time — tempo em segundos desde o último frame
+     * @param dt tempo em segundos desde o último passo
      */
     public abstract void update(float dt);
 
     /**
-     * Método chamado a cada frame para desenhar os elementos visuais da cena.
+     * Desenha o mundo da cena (pixel art, espaço lógico).
      *
-     * @param g objeto {@link Graphics} usado para renderização 2D
+     * @param g contexto gráfico do back buffer lógico
      */
     public abstract void render(Graphics g);
 
     /**
-     * Método chamado uma vez ao sair da cena atual.
-     * Ideal para limpar recursos, pausar música ou salvar progresso.
+     * Desenha HUD/texto em resolução nativa com antialiasing (tipografia nítida).
+     * As coordenadas continuam sendo as lógicas. Padrão: não desenha nada.
+     *
+     * @param g contexto já escalado e com antialiasing ativo
      */
+    public void renderUI(Graphics2D g) {
+        // Opcional.
+    }
+
+    /** Chamado uma vez ao sair da cena. */
     public abstract void onExit();
 }

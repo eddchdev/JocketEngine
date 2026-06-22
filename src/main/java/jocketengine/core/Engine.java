@@ -12,6 +12,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 
@@ -153,19 +154,34 @@ public final class Engine implements Runnable {
     }
 
     private void render(BufferStrategy bs) {
+        int scale = config.getScale();
+
+        // 1) Mundo (pixel art) desenhado no back buffer lógico.
         bufferGraphics.setColor(Color.BLACK);
         bufferGraphics.fillRect(0, 0, config.getWidth(), config.getHeight());
-
         SceneManager.render(bufferGraphics);
-        UIManager.render(bufferGraphics);
 
         Graphics g = bs.getDrawGraphics();
         Graphics2D g2 = (Graphics2D) g;
+
+        // 2) Amplia o mundo com vizinho-mais-próximo (mantém o pixel art nítido).
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
         g2.drawImage(backBuffer, 0, 0,
-                config.getWidth() * config.getScale(),
-                config.getHeight() * config.getScale(), null);
+                config.getWidth() * scale, config.getHeight() * scale, null);
+
+        // 3) UI/HUD em resolução nativa, com antialiasing -> tipografia limpa.
+        //    Usa as mesmas coordenadas lógicas via transformação de escala.
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        AffineTransform original = g2.getTransform();
+        g2.scale(scale, scale);
+        SceneManager.renderUI(g2);
+        UIManager.render(g2);
+        g2.setTransform(original);
+
         g.dispose();
         bs.show();
     }
