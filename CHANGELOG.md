@@ -3,6 +3,24 @@
 Todas as mudanças relevantes deste projeto são documentadas aqui.
 O formato segue, em linhas gerais, [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
+## [1.1.0]
+
+Expansão para uma engine 2D modular e completa.
+
+### Adicionado
+- **Câmera 2D** (`Camera2D`): zoom, seguir alvo com suavização e limites de mundo.
+- **Tilemap** (`TileMap`): mapas em grade com colisão integrada (`getSolidBounds`).
+- **Partículas** (`ParticleSystem`): explosões e efeitos com gravidade e desbotamento.
+- **Tweening** (`Tween` + `Easing`): interpolação animada com várias curvas (linear, quad, sine, back, bounce).
+- **Áudio** (`Audio` + `Sfx`): SFX **procedural** sintetizado em código, robusto à ausência de dispositivo de som.
+- **Input por ações** (`InputMap`): mapeamento remapeável de teclas para ações nomeadas.
+- **Assets** unificado (`Assets`): acesso único a texturas, sons e fontes com cache.
+- **Math** (`MathUtils`) e `Vector2` expandido (length, dot, normalize, lerp, distance).
+- **Utilitários**: `Logger` com níveis e `Preferences` (salvar/carregar progresso).
+- Personagem com **ciclo de caminhada** (2 quadros) e som de pulo.
+- Demo ampliado: mundo em tilemap com **câmera rolando**, partículas e som ao coletar moedas, e vitória animada com tween.
+- Cobertura de testes cresceu de 35 para **88**.
+
 ## [1.0.0]
 
 Primeira versão funcional e jogável da engine.

@@ -11,188 +11,154 @@
     <img src="https://img.shields.io/badge/Java-17+-brightgreen?style=for-the-badge&logo=java" alt="Java 17+" />
   </a>
   <img src="https://img.shields.io/badge/dependencies-zero-success?style=for-the-badge" alt="Zero dependencies" />
+  <img src="https://img.shields.io/badge/tests-88_passing-success?style=for-the-badge" alt="Tests" />
 </p>
 
 <p align="center">
-  <b>Engine de jogos 2D em Java puro — leve, modular e sem dependências nativas.</b><br>
-  <i>Clonou, rodou. Só precisa do JDK: nada de instalar bibliotecas nativas ou drivers.</i>
+  <b>Motor de jogos 2D em Java puro — modular, completo e sem dependências.</b><br>
+  <i>Clonou, rodou. Só precisa do JDK: nada de bibliotecas nativas, drivers ou setup.</i>
 </p>
-
----
 
 <p align="center">
   <img src="docs/screenshot-menu.png" width="48%" alt="Menu principal" />
-  <img src="docs/screenshot-game.png" width="48%" alt="Gameplay de demonstração" />
+  <img src="docs/screenshot-game.png" width="48%" alt="Gameplay com câmera, tilemap e partículas" />
 </p>
-
-> **JocketEngine** é um motor 2D feito sobre Java2D, pensado para jogos pixel art.
-> A proposta é ser **fácil de entender e fácil de rodar**: a engine inteira usa
-> apenas o que vem no JDK, então qualquer pessoa com Java instalado consegue
-> compilar e jogar o demo em um comando.
 
 ---
 
-## ✨ Recursos
+## Por que JocketEngine?
 
-- 🎬 **Gerenciamento de cenas em pilha** — troca de cena e sobreposições (ex.: pausa por cima do jogo).
-- 🧱 **Entidades + componentes** — anexe comportamentos reutilizáveis (física, animação...) às entidades.
-- 💥 **Colisão AABB** — detecção por caixa delimitadora com disparo de eventos.
-- 🔔 **Sistema de eventos com prioridades** — comunicação desacoplada e cancelável.
-- 🎮 **Entrada unificada** — teclado e mouse, já convertidos para o espaço lógico do jogo.
-- 🖥️ **UI integrada** — botões, rótulos, painéis, sliders e campos de texto.
-- 🕹️ **Loop de tempo fixo** — física determinística, independente da taxa de quadros.
-- 🎨 **Renderização pixel art** — resolução lógica ampliada com vizinho-mais-próximo.
-- 🧪 **Testado** — suíte JUnit cobrindo a lógica central, rodando em CI.
-- 📦 **Zero dependências de runtime** e um **JAR executável** gerado pelo build.
+A maioria das engines 2D em Java exigem bibliotecas nativas (LWJGL/OpenGL),
+builds por plataforma e bastante setup. A JocketEngine entrega um conjunto
+**completo e modular** de sistemas de jogo usando **apenas o JDK** — então a
+barreira para alguém clonar, rodar e contribuir é praticamente zero.
+
+### ✨ Diferenciais
+
+- 🧩 **Zero dependências de runtime.** Roda em qualquer SO só com Java. JAR final < 60 KB.
+- 🔊 **SFX procedural.** Sons sintetizados em código (`Sfx.coin()`), sem arquivos de áudio.
+- 🛡️ **Personagem procedural animado.** O herói é pixel art definido em código, com ciclo de caminhada — sem assets.
+- 🔡 **Tipografia nítida.** O mundo é pixel art (nearest-neighbor); a UI é renderizada em resolução nativa com antialiasing.
+- 🎚️ **Pronta para produção.** 88 testes automatizados, CI no GitHub Actions e JAR executável.
+
+---
+
+## 🧱 Módulos
+
+A engine é organizada em módulos independentes — use só o que precisar.
+
+| Módulo        | Responsabilidade                                                      |
+|---------------|----------------------------------------------------------------------|
+| `core`        | `Engine` (janela + loop de tempo fixo + escala pixel art), `GameConfig` |
+| `scene`       | Pilha de cenas com sobreposições (pausa por cima do jogo)            |
+| `entities`    | Entidades + **componentes** reutilizáveis (física, animação, bob)    |
+| `graphics`    | `Sprite` (pixel art via código), `SpriteAnimation`, **`Camera2D`**   |
+| `tilemap`     | `TileMap` baseado em grade, com colisão integrada                    |
+| `collision`   | Detecção de colisão AABB com eventos                                 |
+| `events`      | Eventos com prioridade e cancelamento                                |
+| `input`       | Teclado/mouse globais + **`InputMap`** (ações remapeáveis)           |
+| `ui`          | Botões, rótulos, painéis, sliders, campos de texto + estilo          |
+| `particles`   | Sistema de partículas (explosões, efeitos)                           |
+| `tween`       | `Tween` + `Easing` (linear, quad, sine, back, bounce)               |
+| `audio`       | `Audio` (volume/loop) + `Sfx` procedural                            |
+| `assets`      | `Assets` unificado (texturas, sons, fontes) com cache                |
+| `math`        | `MathUtils`, `Vector2`                                               |
+| `utils`       | `Rectangle`, `Timer`, `Logger`, `Preferences` (save/load)           |
 
 ---
 
 ## 🚀 Começando
 
-### Pré-requisitos
-
-- ☕ JDK 17 ou superior
-- 🛠️ Apache Maven 3.8+
-
-### Compilar e jogar
-
 ```bash
 git clone https://github.com/eddchdev/JocketEngine.git
 cd JocketEngine
 
-# Opção A: rodar direto pelo Maven
-mvn -q compile exec:java
-
-# Opção B: gerar o JAR executável e rodar
-mvn -q package
-java -jar target/JocketEngine.jar
+mvn -q compile exec:java        # roda o demo
+# ou: mvn -q package && java -jar target/JocketEngine.jar
 ```
 
-### Controles do demo
-
-| Tecla | Ação |
-|-------|------|
-| `←` `→` ou `A` `D` | Mover |
-| `↑` / `W` / `Espaço` | Pular |
-| `ESC` | Pausar / continuar |
-| Mouse | Navegar nos menus |
-
-Objetivo: junte as 5 moedas.
+**Controles:** `←`/`→` ou `A`/`D` mover · `↑`/`W`/`Espaço` pular · `ESC` pausar · mouse nos menus. Junte as 5 moedas.
 
 ---
 
-## 🧠 Conceitos em código
+## 🧠 Em código
 
-**Iniciar a engine com uma cena:**
+**Iniciar a engine:**
 
 ```java
-GameConfig config = new GameConfig()
-        .title("Meu Jogo")
-        .logicalSize(480, 270)
-        .scale(3)
-        .targetFps(60);
-
-Engine.start(config, new MainMenuScene());
+Engine.start(
+    new GameConfig().title("Meu Jogo").logicalSize(480, 270).scale(3).targetFps(60),
+    new MainMenuScene());
 ```
 
-**Criar uma cena:**
+**Câmera que segue o jogador:**
 
 ```java
-public class MinhaCena extends Scene {
-    @Override public void onLoad()  { /* inicializa */ }
-    @Override public void update(float dt) { /* lógica */ }
-    @Override public void render(Graphics g) { /* desenho */ }
-    @Override public void onExit()  { /* limpeza */ }
-}
+Camera2D camera = new Camera2D(Engine.getWidth(), Engine.getHeight());
+camera.setBounds(0, 0, world.getWorldWidth(), world.getWorldHeight());
+// no render:
+camera.begin(g2);  /* desenha o mundo */  camera.end(g2);
+// no update:
+camera.follow(player.getX(), player.getY(), 0.12f);
 ```
 
-**Uma entidade com componente de física:**
+**Tilemap com colisão:**
 
 ```java
-public class Caixa extends Entity {
-    public Caixa(float x, float y) {
-        super(x, y, 16, 16);
-        addComponent(new PhysicsComponent(this)).gravity = 800f;
-    }
-    @Override public void update(float dt) { }   // o componente cuida do movimento
-    @Override public void render(Graphics g) {
-        g.setColor(Color.ORANGE);
-        g.fillRect((int) getX(), (int) getY(), getWidth(), getHeight());
-    }
-}
+TileMap map = new TileMap(grid, 30, 30).setSolid(1, 2);
+player.setPlatforms(map.getAllSolidBounds());
 ```
 
-**Reagir a eventos:**
+**Input por ações (remapeável):**
 
 ```java
-EventManager.registerListener(CollisionEvent.class, EventPriority.NORMAL, e ->
-        System.out.println("Colisão entre " + e.getEntityA() + " e " + e.getEntityB()));
+InputMap controls = new InputMap().bind("jump", KeyEvent.VK_SPACE, KeyEvent.VK_W);
+if (controls.isPressed("jump")) player.jump();
 ```
 
-**Adicionar UI:**
+**Partículas + SFX procedural + tween:**
 
 ```java
-Button jogar = new Button(160, 130, 160, 34, "Jogar");
-jogar.setOnClick(() -> SceneManager.changeScene(new GameScene()));
-UIManager.add(jogar);
+particles.burst(x, y, 16, new Color(255, 210, 70));
+Audio.play(Sfx.coin());
+tweens.add(new Tween(0, 1, 0.6f, Easing.BACK_OUT, s -> bannerScale = s));
 ```
 
-**Ler entrada:**
+**Salvar progresso:**
 
 ```java
-if (Input.isKeyDown(KeyEvent.VK_SPACE)) { /* segurando */ }
-if (Input.isKeyPressed(KeyEvent.VK_ESCAPE)) { /* só neste passo */ }
+new Preferences(new File("save.properties")).putInt("highScore", 1200).save();
 ```
 
 ---
 
-## 🗂 Estrutura
-
-```text
-jocketengine/
-├── core/        🚦 Engine (janela + loop de tempo fixo) e GameConfig
-├── scene/       🎬 Cenas, pilha de cenas e o demo (menu, jogo, pausa)
-├── entities/    👾 Entity, EntityManager e componentes (física, bob, animação)
-├── events/      🔔 Eventos com prioridade e cancelamento
-├── collision/   💥 Detecção de colisão AABB
-├── input/       🎮 Teclado e mouse globais
-├── ui/          🖥️ Elementos de interface e estilo
-├── graphics/    🎞️ Animação de sprites
-├── assets/      🖼️ Carregadores de imagem, som, fonte e atlas
-├── utils/       🛠️ Vector2, Rectangle, Timer
-└── Game.java    ▶️ Ponto de entrada do demo
-```
-
----
-
-## 🧪 Testes
+## 🧪 Testes & qualidade
 
 ```bash
 mvn test
 ```
 
-A lógica central (vetores, colisão, eventos, cenas, componentes, física,
-animação) é coberta por testes JUnit 5, executados automaticamente no
-[GitHub Actions](.github/workflows/maven.yml) a cada push.
+**88 testes** JUnit 5 cobrem a lógica central — math, colisão, câmera, tilemap,
+eventos, tween, partículas, preferências e mais — rodando em ambiente headless
+no [GitHub Actions](.github/workflows/maven.yml) a cada push.
 
 ---
 
 ## 🛣️ Roadmap
 
 - [ ] Backend de renderização acelerado por hardware (opcional)
-- [ ] Tilemaps e carregamento de fases
-- [ ] Áudio integrado ao ciclo de jogo (já existe o carregador)
+- [ ] Editor visual de tilemaps e fases
 - [ ] Suporte a gamepad
-- [ ] Câmera com rolagem (scrolling) e zoom
-- [ ] Sistema de partículas
+- [ ] Sistema de luz/sombra 2D
+- [ ] Multiplayer básico
 
 ---
 
 ## 🤝 Contribuindo
 
-Contribuições são bem-vindas! Veja o [CONTRIBUTING.md](CONTRIBUTING.md) para o
-fluxo de trabalho, padrões de código e como rodar os testes localmente.
+Veja o [CONTRIBUTING.md](CONTRIBUTING.md). Princípio do projeto: **sem
+dependências de runtime** — só o JDK.
 
 ## 📜 Licença
 
-Distribuído sob a [Licença MIT](LICENSE).
+[Licença MIT](LICENSE).
