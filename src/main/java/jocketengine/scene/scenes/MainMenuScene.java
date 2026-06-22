@@ -1,81 +1,63 @@
 package jocketengine.scene.scenes;
 
-import jocketengine.Game;
+import jocketengine.core.Engine;
 import jocketengine.scene.Scene;
+import jocketengine.scene.SceneManager;
 import jocketengine.ui.UIManager;
 import jocketengine.ui.elements.Button;
 import jocketengine.ui.elements.Label;
+import jocketengine.ui.style.UIFonts;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
 
 /**
- * Cena inicial do jogo, responsável por exibir o menu principal.
- * <p>
- * Contém o título e botões "Iniciar Jogo" e "Sair".
- * Usa o sistema de UI da JocketEngine.
- * </p>
+ * Menu principal: título, botão de jogar e botão de sair.
  *
  * @author Eddch
  */
 public class MainMenuScene extends Scene {
 
-    private Font titleFont;
-
-    /**
-     * Carrega os elementos da cena (título e botões).
-     */
     @Override
     public void onLoad() {
-        UIManager.clear(); // Garante que a interface comece limpa
+        UIManager.clear();
 
-        int centerX = Game.getGameWidth() * 3 / 2; // WIDTH * SCALE
-        int spacing = 60;
+        int centerX = Engine.getWidth() / 2;
 
-        // Carrega uma fonte bonita (opcional)
-        titleFont = new Font("Arial", Font.BOLD, 36);
+        UIManager.add(new Label(centerX, 74, "JocketEngine", UIFonts.TITLE, new Color(225, 230, 240))
+                .setAlign(Label.Align.CENTER));
 
-        // Título
-        UIManager.add(new Label(centerX - 100, 80, "JocketEngine", titleFont, Color.WHITE));
+        UIManager.add(new Label(centerX, 94, "engine 2D em Java", UIFonts.SUBTITLE, new Color(140, 150, 175))
+                .setAlign(Label.Align.CENTER));
 
-        // Botão: Iniciar Jogo (ainda sem ação real)
-        Button startButton = new Button(centerX - 100, 160, 200, 40, "Iniciar Jogo");
-        startButton.setOnClick(() -> {
-            System.out.println("Jogo iniciado (futuro: carregar GameScene)");
-        });
+        int buttonWidth = 160;
+        int buttonX = centerX - buttonWidth / 2;
 
-        // Botão: Sair
-        Button exitButton = new Button(centerX - 100, 220, 200, 40, "Sair");
-        exitButton.setOnClick(Game::exit);
+        Button play = new Button(buttonX, 130, buttonWidth, 34, "Jogar");
+        play.setOnClick(() -> SceneManager.changeScene(new GameScene()));
+        UIManager.add(play);
 
-        // Adiciona os botões à UI
-        UIManager.add(startButton);
-        UIManager.add(exitButton);
+        Button quit = new Button(buttonX, 175, buttonWidth, 34, "Sair");
+        quit.setOnClick(Engine::exit);
+        UIManager.add(quit);
+
+        UIManager.add(new Label(centerX, 245, "Setas/WASD: mover    Espaço: pular", UIFonts.SMALL,
+                new Color(120, 125, 145)).setAlign(Label.Align.CENTER));
     }
 
-    /**
-     * Atualiza a lógica da cena (nada específico aqui).
-     *
-     * @param dt delta time (tempo em segundos desde o último frame)
-     */
     @Override
     public void update(float dt) {
-        // Lógica do menu pode ser adicionada aqui (animações, efeitos)
+        // A interação fica por conta da UI.
     }
 
-    /**
-     * Renderiza o fundo do menu e deixa o restante para o UIManager.
-     *
-     * @param g objeto Graphics para desenhar
-     */
     @Override
     public void render(Graphics g) {
-        g.setColor(new Color(20, 20, 30));
-        g.fillRect(0, 0, Game.getGameWidth() * 3, Game.getGameHeight() * 3);
+        int w = Engine.getWidth();
+        int h = Engine.getHeight();
+        g.setColor(new Color(18, 18, 28));
+        g.fillRect(0, 0, w, h);
     }
 
-    /**
-     * Limpa elementos da UI ao sair do menu.
-     */
     @Override
     public void onExit() {
         UIManager.clear();

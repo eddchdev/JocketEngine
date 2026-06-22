@@ -7,50 +7,48 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Gerenciador global de interface gráfica da JocketEngine.
+ * Gerenciador global da interface gráfica.
  * <p>
- * Responsável por armazenar, atualizar e renderizar todos os elementos
- * de UI em tempo real, como botões, rótulos, painéis e campos de texto.
+ * Armazena, atualiza e renderiza os elementos de UI. A atualização percorre uma
+ * cópia da lista, então é seguro um elemento adicionar, remover ou trocar de cena
+ * (limpando a UI) durante o seu próprio {@code update} — como faz um botão ao ser
+ * clicado.
  * </p>
- *
- * <p>Uso típico:</p>
- * <pre>{@code
- * UIManager.add(new Button(...));
- * UIManager.update(dt);
- * UIManager.render(g);
- * }</pre>
  *
  * @author Eddch
  */
-public class UIManager {
+public final class UIManager {
 
-    /** Lista de elementos ativos da interface. */
     private static final List<UIElement> elements = new ArrayList<>();
 
-    /**
-     * Adiciona um novo elemento visual à interface.
-     *
-     * @param element o elemento de UI a ser adicionado
-     */
+    private UIManager() {
+    }
+
+    /** Adiciona um elemento à interface. */
     public static void add(UIElement element) {
         elements.add(element);
     }
 
+    /** Remove um elemento da interface. */
+    public static void remove(UIElement element) {
+        elements.remove(element);
+    }
+
     /**
-     * Atualiza todos os elementos da interface.
+     * Atualiza todos os elementos (sobre uma cópia, para permitir mutação durante a iteração).
      *
-     * @param dt delta time (tempo em segundos desde o último frame)
+     * @param dt delta time em segundos
      */
     public static void update(float dt) {
-        for (UIElement element : elements) {
+        for (UIElement element : new ArrayList<>(elements)) {
             element.update(dt);
         }
     }
 
     /**
-     * Renderiza todos os elementos da interface gráfica.
+     * Renderiza todos os elementos.
      *
-     * @param g objeto {@link Graphics} usado para desenhar
+     * @param g contexto gráfico
      */
     public static void render(Graphics g) {
         for (UIElement element : elements) {
@@ -58,28 +56,12 @@ public class UIManager {
         }
     }
 
-    /**
-     * Remove todos os elementos da interface atual.
-     * Útil ao trocar de cena ou limpar a tela.
-     */
+    /** Remove todos os elementos. */
     public static void clear() {
         elements.clear();
     }
 
-    /**
-     * Remove um elemento específico da interface.
-     *
-     * @param element o elemento a ser removido
-     */
-    public static void remove(UIElement element) {
-        elements.remove(element);
-    }
-
-    /**
-     * Retorna uma cópia da lista atual de elementos de UI.
-     *
-     * @return lista de elementos visuais
-     */
+    /** @return cópia da lista atual de elementos. */
     public static List<UIElement> getElements() {
         return new ArrayList<>(elements);
     }

@@ -1,50 +1,51 @@
 package jocketengine.scene;
 
 import java.awt.Graphics;
-import java.util.Stack;
+import java.awt.Graphics2D;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
- * Classe responsável por controlar as cenas ativas do jogo.
+ * Controla as cenas ativas do jogo usando uma pilha.
  * <p>
- * Suporta empilhamento de cenas — ideal para menus de pausa sobre o jogo,
- * cutscenes ou janelas temporárias. A cena do topo da pilha é a ativa.
+ * Apenas a cena do topo é <b>atualizada</b>, mas todas são <b>renderizadas</b>,
+ * de baixo para cima — o que permite sobreposições translúcidas (ex.: um menu de
+ * pausa por cima do jogo congelado).
  * </p>
  *
  * @author Eddch
  */
-public class SceneManager {
+public final class SceneManager {
 
-    /** Pilha de cenas ativas (a do topo é a atual) */
-    private static final Stack<Scene> sceneStack = new Stack<>();
+    private static final Deque<Scene> sceneStack = new ArrayDeque<>();
+
+    private SceneManager() {
+    }
 
     /**
-     * Carrega uma nova cena, limpando todas as anteriores.
+     * Substitui toda a pilha por uma nova cena.
      *
-     * @param newScene nova cena a ser carregada
+     * @param newScene nova cena
      */
     public static void changeScene(Scene newScene) {
-        // Finaliza todas as cenas anteriores
         while (!sceneStack.isEmpty()) {
             sceneStack.pop().onExit();
         }
-
         sceneStack.push(newScene);
         newScene.onLoad();
     }
 
     /**
-     * Empilha uma nova cena sobre a atual (ex: menu pausa sobre jogo).
+     * Empilha uma cena sobre a atual (ex.: menu de pausa).
      *
-     * @param scene nova cena empilhada
+     * @param scene cena a empilhar
      */
     public static void pushScene(Scene scene) {
         sceneStack.push(scene);
         scene.onLoad();
     }
 
-    /**
-     * Remove a cena atual do topo e volta para a anterior.
-     */
+    /** Remove a cena do topo e retorna à anterior. */
     public static void popScene() {
         if (!sceneStack.isEmpty()) {
             sceneStack.pop().onExit();
@@ -52,39 +53,48 @@ public class SceneManager {
     }
 
     /**
-     * Atualiza apenas a cena atual (topo da pilha).
+     * Atualiza apenas a cena do topo.
      *
-     * @param dt delta time (tempo em segundos desde o último frame)
+     * @param dt delta time em segundos
      */
     public static void update(float dt) {
-        if (!sceneStack.isEmpty()) {
-            sceneStack.peek().update(dt);
+        Scene current = sceneStack.peek();
+        if (current != null) {
+            current.update(dt);
         }
     }
 
     /**
-     * Renderiza a cena atual.
+     * Renderiza toda a pilha, da base ao topo.
      *
-     * @param g objeto Graphics usado para desenhar
+     * @param g contexto gráfico
      */
     public static void render(Graphics g) {
-        if (!sceneStack.isEmpty()) {
-            sceneStack.peek().render(g);
+        // ArrayDeque como pilha: iterator vai do topo para a base, então percorremos ao contrário.
+        Scene[] scenes = sceneStack.toArray(new Scene[0]);
+        for (int i = scenes.length - 1; i >= 0; i--) {
+            scenes[i].render(g);
         }
     }
 
     /**
-     * Retorna a cena atual (topo da pilha).
+     * Renderiza o HUD/UI apenas da cena do topo, em resolução nativa.
      *
-     * @return cena atual
+     * @param g contexto já escalado e com antialiasing
      */
-    public static Scene getCurrent() {
-        return sceneStack.isEmpty() ? null : sceneStack.peek();
+    public static void renderUI(Graphics2D g) {
+        Scene current = sceneStack.peek();
+        if (current != null) {
+            current.renderUI(g);
+        }
     }
 
-    /**
-     * Limpa todas as cenas carregadas.
-     */
+    /** @return cena do topo, ou {@code null} se a pilha estiver vazia. */
+    public static Scene getCurrent() {
+        return sceneStack.peek();
+    }
+
+    /** Remove todas as cenas. */
     public static void clear() {
         while (!sceneStack.isEmpty()) {
             sceneStack.pop().onExit();

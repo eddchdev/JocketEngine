@@ -1,30 +1,18 @@
 package jocketengine.events;
 
 /**
- * Evento que pode ser cancelado independentemente de outras propriedades.
+ * Evento que oferece um atalho semântico para cancelamento.
  * <p>
- * Usado quando se quer distinguir eventos canceláveis de não canceláveis.
+ * Reaproveita o estado de cancelamento de {@link Event} (sem duplicá-lo),
+ * apenas expondo um {@link #cancel()} mais expressivo.
  * </p>
- * 
+ *
  * @author Eddch
  */
 public abstract class CancellableEvent extends Event {
 
-    private boolean cancelled = false;
-
-    /**
-     * Cancela este evento.
-     */
+    /** Cancela este evento (equivale a {@code setCancelled(true)}). */
     public void cancel() {
-        this.cancelled = true;
-    }
-
-    /**
-     * Verifica se o evento foi cancelado.
-     * 
-     * @return true se foi cancelado
-     */
-    public boolean isCancelled() {
-        return cancelled;
+        setCancelled(true);
     }
 }

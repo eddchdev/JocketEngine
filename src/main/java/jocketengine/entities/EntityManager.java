@@ -2,53 +2,58 @@ package jocketengine.entities;
 
 import java.awt.Graphics;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * Gerenciador global de entidades da JocketEngine.
+ * Armazena, atualiza e renderiza um conjunto de {@link Entity entidades}.
  * <p>
- * Responsável por armazenar, atualizar e renderizar todas as entidades.
+ * Entidades marcadas com {@link Entity#destroy()} são removidas automaticamente
+ * no início do passo seguinte.
  * </p>
- * 
+ *
  * @author Eddch
  */
 public class EntityManager {
 
     private final List<Entity> entities = new ArrayList<>();
+    private final List<Entity> pendingAdd = new ArrayList<>();
 
     /**
-     * Adiciona uma entidade à lista.
-     * 
-     * @param entity entidade a ser adicionada
+     * Adiciona uma entidade. A inclusão acontece no próximo {@link #update(float)},
+     * o que torna seguro adicionar entidades durante a iteração.
+     *
+     * @param entity entidade a adicionar
      */
     public void addEntity(Entity entity) {
-        entities.add(entity);
+        pendingAdd.add(entity);
     }
 
     /**
-     * Remove uma entidade da lista.
-     * 
-     * @param entity entidade a ser removida
-     */
-    public void removeEntity(Entity entity) {
-        entities.remove(entity);
-    }
-
-    /**
-     * Atualiza todas as entidades.
-     * 
-     * @param dt delta time (segundos desde o último frame)
+     * Atualiza todas as entidades vivas e remove as destruídas.
+     *
+     * @param dt delta time em segundos
      */
     public void update(float dt) {
-        for (Entity entity : entities) {
-            entity.update(dt);
+        if (!pendingAdd.isEmpty()) {
+            entities.addAll(pendingAdd);
+            pendingAdd.clear();
+        }
+
+        entities.removeIf(e -> !e.isAlive());
+
+        // Cópia defensiva: uma entidade pode adicionar/remover outras durante o update.
+        for (Entity entity : new ArrayList<>(entities)) {
+            if (entity.isAlive()) {
+                entity.tick(dt);
+            }
         }
     }
 
     /**
      * Renderiza todas as entidades.
-     * 
-     * @param g objeto Graphics para desenhar
+     *
+     * @param g contexto gráfico
      */
     public void render(Graphics g) {
         for (Entity entity : entities) {
@@ -56,19 +61,14 @@ public class EntityManager {
         }
     }
 
-    /**
-     * Remove todas as entidades.
-     */
-    public void clear() {
-        entities.clear();
+    /** @return lista imutável das entidades atualmente ativas. */
+    public List<Entity> getEntities() {
+        return Collections.unmodifiableList(entities);
     }
 
-    /**
-     * Retorna a lista de entidades (não modificável).
-     * 
-     * @return lista de entidades
-     */
-    public List<Entity> getEntities() {
-        return List.copyOf(entities);
+    /** Remove todas as entidades imediatamente. */
+    public void clear() {
+        entities.clear();
+        pendingAdd.clear();
     }
 }

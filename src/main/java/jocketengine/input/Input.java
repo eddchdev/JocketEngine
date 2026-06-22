@@ -1,57 +1,69 @@
 package jocketengine.input;
 
 import java.awt.Component;
-import java.awt.event.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.LinkedList;
 import java.util.Queue;
 
 /**
  * Sistema global de entrada da JocketEngine.
  * <p>
- * Captura estados de teclado e mouse de forma centralizada,
- * incluindo suporte a teclas pressionadas, mouse, e caracteres digitados.
+ * Captura o estado de teclado e mouse de forma centralizada e estática:
+ * </p>
+ * <pre>{@code
+ * if (Input.isKeyDown(KeyEvent.VK_SPACE)) { ... }   // enquanto segurado
+ * if (Input.isKeyPressed(KeyEvent.VK_ESCAPE)) { ... } // só no passo em que foi pressionado
+ * }</pre>
+ *
+ * <p>
+ * As coordenadas do mouse são convertidas para o <b>espaço lógico</b> do jogo
+ * (dividindo pela escala da janela), então combinam diretamente com as posições
+ * usadas para desenhar cenas e UI.
  * </p>
  *
  * <p>
- * Este sistema é projetado para ser usado de forma estática:
- * {@code if (Input.isKeyDown(KeyEvent.VK_SPACE)) {...}}
+ * Os estados "deste passo" ({@link #isKeyPressed(int)}, {@link #isMousePressed()},
+ * {@link #getTypedText()}) são válidos até a chamada de {@link #update()}, que a
+ * {@link jocketengine.core.Engine} faz ao final de cada atualização de lógica.
  * </p>
  *
  * @author Eddch
  */
-public class Input {
+public final class Input {
 
     private static final int MAX_KEYS = 256;
     private static final int MAX_MOUSE = 3;
 
-    /** Estado atual de teclas pressionadas. */
     private static final boolean[] keys = new boolean[MAX_KEYS];
-
-    /** Marca teclas pressionadas neste frame. */
     private static final boolean[] keysPressed = new boolean[MAX_KEYS];
+    private static final boolean[] keysReleased = new boolean[MAX_KEYS];
 
-    /** Estado atual dos botões do mouse. */
     private static final boolean[] mouseButtons = new boolean[MAX_MOUSE];
-
-    /** Marca se o botão do mouse foi pressionado neste frame. */
     private static boolean mousePressed = false;
-
-    /** Marca se o botão do mouse está sendo segurado. */
     private static boolean mouseHeld = false;
 
-    /** Coordenadas do mouse na tela. */
-    private static int mouseX = 0, mouseY = 0;
+    private static int mouseX = 0;
+    private static int mouseY = 0;
+    private static int scale = 1;
 
-    /** Fila de caracteres digitados no frame atual. */
     private static final Queue<Character> typedCharacters = new LinkedList<>();
 
-    /** Listener para eventos de teclado. */
+    private static boolean attached = false;
+
+    private Input() {
+    }
+
     private static final KeyAdapter keyAdapter = new KeyAdapter() {
         @Override
         public void keyPressed(KeyEvent e) {
             int code = e.getKeyCode();
-            if (code < MAX_KEYS) {
-                if (!keys[code]) keysPressed[code] = true;
+            if (code >= 0 && code < MAX_KEYS) {
+                if (!keys[code]) {
+                    keysPressed[code] = true;
+                }
                 keys[code] = true;
             }
         }
@@ -59,8 +71,9 @@ public class Input {
         @Override
         public void keyReleased(KeyEvent e) {
             int code = e.getKeyCode();
-            if (code < MAX_KEYS) {
+            if (code >= 0 && code < MAX_KEYS) {
                 keys[code] = false;
+                keysReleased[code] = true;
             }
         }
 
@@ -73,12 +86,12 @@ public class Input {
         }
     };
 
-    /** Listener para eventos de mouse. */
     private static final MouseAdapter mouseAdapter = new MouseAdapter() {
         @Override
         public void mousePressed(MouseEvent e) {
-            if (e.getButton() <= MAX_MOUSE) {
-                mouseButtons[e.getButton() - 1] = true;
+            int button = e.getButton();
+            if (button >= 1 && button <= MAX_MOUSE) {
+                mouseButtons[button - 1] = true;
                 mouseHeld = true;
                 mousePressed = true;
             }
@@ -86,16 +99,17 @@ public class Input {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            if (e.getButton() <= MAX_MOUSE) {
-                mouseButtons[e.getButton() - 1] = false;
+            int button = e.getButton();
+            if (button >= 1 && button <= MAX_MOUSE) {
+                mouseButtons[button - 1] = false;
                 mouseHeld = false;
             }
         }
 
         @Override
         public void mouseMoved(MouseEvent e) {
-            mouseX = e.getX();
-            mouseY = e.getY();
+            mouseX = e.getX() / scale;
+            mouseY = e.getY() / scale;
         }
 
         @Override
@@ -105,126 +119,83 @@ public class Input {
     };
 
     /**
-     * Inicializa o sistema de entrada num componente Swing (Canvas, JPanel...).
+     * Conecta o sistema de entrada a um componente (a {@code Canvas} da engine).
+     * Idempotente: registrar listeners mais de uma vez não tem efeito.
      *
-     * @param c componente onde os eventos de entrada serão escutados
+     * @param component componente que receberá os eventos
+     * @param scale     escala da janela, usada para converter o mouse ao espaço lógico
      */
-    public static void setup(Component c) {
-        c.addKeyListener(keyAdapter);
-        c.addMouseListener(mouseAdapter);
-        c.addMouseMotionListener(mouseAdapter);
-        c.setFocusable(true);
-        c.requestFocusInWindow();
+    public static void attach(Component component, int scale) {
+        Input.scale = Math.max(1, scale);
+        if (attached) {
+            return;
+        }
+        component.addKeyListener(keyAdapter);
+        component.addMouseListener(mouseAdapter);
+        component.addMouseMotionListener(mouseAdapter);
+        component.setFocusable(true);
+        component.requestFocusInWindow();
+        attached = true;
     }
 
     /**
-     * Atualiza o estado interno do sistema de entrada.
-     * Deve ser chamado ao final de cada frame.
+     * Limpa os estados de "deste passo". Chamado pela engine ao final de cada
+     * atualização de lógica, depois que cenas e UI já leram a entrada.
      */
     public static void update() {
         mousePressed = false;
-
         for (int i = 0; i < MAX_KEYS; i++) {
             keysPressed[i] = false;
+            keysReleased[i] = false;
         }
-
         typedCharacters.clear();
     }
 
-    /**
-     * Verifica se uma tecla está atualmente pressionada.
-     *
-     * @param keyCode código da tecla (KeyEvent.VK_*)
-     * @return true se a tecla está sendo mantida pressionada
-     */
+    /** @return true enquanto a tecla estiver sendo mantida pressionada. */
     public static boolean isKeyDown(int keyCode) {
-        return keyCode < MAX_KEYS && keys[keyCode];
+        return keyCode >= 0 && keyCode < MAX_KEYS && keys[keyCode];
     }
 
-    /**
-     * Verifica se uma tecla foi pressionada neste frame.
-     *
-     * @param keyCode código da tecla (KeyEvent.VK_*)
-     * @return true se a tecla foi pressionada agora
-     */
+    /** @return true apenas no passo em que a tecla foi pressionada. */
     public static boolean isKeyPressed(int keyCode) {
-        return keyCode < MAX_KEYS && keysPressed[keyCode];
+        return keyCode >= 0 && keyCode < MAX_KEYS && keysPressed[keyCode];
     }
 
-    /**
-     * Verifica se o botão esquerdo do mouse está sendo segurado.
-     *
-     * @return true se o mouse está pressionado
-     */
+    /** @return true apenas no passo em que a tecla foi solta. */
+    public static boolean isKeyReleased(int keyCode) {
+        return keyCode >= 0 && keyCode < MAX_KEYS && keysReleased[keyCode];
+    }
+
+    /** @return true enquanto o botão esquerdo do mouse estiver pressionado. */
     public static boolean isMouseDown() {
         return mouseHeld;
     }
 
-    /**
-     * Verifica se o botão esquerdo do mouse foi clicado neste frame.
-     *
-     * @return true se foi clicado agora
-     */
+    /** @return true apenas no passo em que o mouse foi clicado. */
     public static boolean isMousePressed() {
         return mousePressed;
     }
 
-    /**
-     * Retorna a posição X atual do cursor do mouse.
-     *
-     * @return coordenada X do mouse
-     */
+    /** @return posição X do cursor no espaço lógico do jogo. */
     public static int getMouseX() {
         return mouseX;
     }
 
-    /**
-     * Retorna a posição Y atual do cursor do mouse.
-     *
-     * @return coordenada Y do mouse
-     */
+    /** @return posição Y do cursor no espaço lógico do jogo. */
     public static int getMouseY() {
         return mouseY;
     }
 
     /**
-     * Retorna o texto digitado pelo usuário neste frame.
-     * Ideal para campos de texto ou chat.
+     * Retorna (e consome) o texto digitado neste passo. Ideal para campos de texto.
      *
-     * @return string com os caracteres digitados
+     * @return caracteres digitados desde o último {@link #update()}
      */
     public static String getTypedText() {
         StringBuilder sb = new StringBuilder();
-        while (!typedCharacters.isEmpty()) {
-            sb.append(typedCharacters.poll());
+        for (Character c : typedCharacters) {
+            sb.append(c);
         }
         return sb.toString();
-    }
-
-    /**
-     * Retorna o listener de teclado utilizado internamente.
-     *
-     * @return KeyListener
-     */
-    public static KeyListener getKeyListener() {
-        return keyAdapter;
-    }
-
-    /**
-     * Retorna o listener de mouse utilizado internamente.
-     *
-     * @return MouseListener
-     */
-    public static MouseListener getMouseListener() {
-        return mouseAdapter;
-    }
-
-    /**
-     * Retorna o listener de movimento do mouse utilizado internamente.
-     *
-     * @return MouseMotionListener
-     */
-    public static MouseMotionListener getMouseMotionListener() {
-        return mouseAdapter;
     }
 }
